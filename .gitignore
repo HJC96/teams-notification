@@ -5,6 +5,8 @@ build/
 
 .kotlin/
 
+gradle.properties
+
 # IntelliJ IDEA / local IDE settings
 .idea/
 *.iml
