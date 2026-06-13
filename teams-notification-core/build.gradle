@@ -1,7 +1,46 @@
+import com.vanniktech.maven.publish.SonatypeHost  // 추가
+
+apply plugin: 'com.vanniktech.maven.publish'
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+
+    coordinates('io.github.hjc96', 'teams-notification-core', '0.1.0')
+
+    pom {
+        name = 'Teams Notification Core'
+        description = 'MS Teams Incoming Webhook 알림 전송 라이브러리 - Core 모듈'
+        url = 'https://github.com/HJC96/teams-notification'
+
+        licenses {
+            license {
+                name = 'Apache License 2.0'
+                url = 'https://www.apache.org/licenses/LICENSE-2.0'
+            }
+        }
+
+        developers {
+            developer {
+                id = 'hjc96'
+                name = 'Han Jichan'
+                email = 'your-email@example.com'
+            }
+        }
+
+        scm {
+            connection = 'scm:git:github.com/HJC96/teams-notification.git'
+            developerConnection = 'scm:git:ssh://github.com/HJC96/teams-notification.git'
+            url = 'https://github.com/HJC96/teams-notification'
+        }
+    }
+}
+
 dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'io.github.resilience4j:resilience4j-retry:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
 
     testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
     testImplementation 'org.wiremock:wiremock-standalone:3.3.1'

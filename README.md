@@ -1,3 +1,4 @@
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.hjc96/teams-notification-core.svg)](https://central.sonatype.com/artifact/io.github.hjc96/teams-notification-core)
 # teams-notification
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
