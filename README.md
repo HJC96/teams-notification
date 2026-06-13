@@ -86,7 +86,7 @@ sequenceDiagram
         Http->>Teams: HTTP POST (JSON)
         Teams-->>Http: 200 OK
         Http-->>Pool: 성공
-        Note over Pool: 메인 스레드 종료 후에도<br/>JVM이 살아있으면 계속 실행
+        Note over Pool: HTTP 요청 완료 후 콜백 실행하고 <br/>스레드 풀로 반환
         Pool->>Pool: thenRun() 콜백 실행
     end
 ```
