@@ -18,6 +18,80 @@ MS Teams 채널로 알림을 전송하는 경량 Java 라이브러리입니다.
 
 ---
 
+## 동작 방식
+
+### 기본 전송 흐름
+
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant Client as TeamsNotificationClient
+    participant Http as WebhookHttpClient
+    participant Teams as MS Teams Webhook
+
+    App->>Client: send(TeamsMessage)
+    Client->>Http: post(message)
+    Http->>Teams: HTTP POST (JSON)
+    Teams-->>Http: 200 OK
+    Http-->>Client: 성공
+    Client-->>App: 완료
+```
+
+### 전송 실패 시 Retry 흐름
+
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant Client as TeamsNotificationClient
+    participant Retry as Retry (Resilience4j)
+    participant Http as WebhookHttpClient
+    participant Teams as MS Teams Webhook
+
+    App->>Client: send(TeamsMessage)
+    Client->>Retry: execute(action)
+
+    Retry->>Http: post(message) [1차 시도]
+    Http->>Teams: HTTP POST
+    Teams-->>Http: 500 Error
+    Http-->>Retry: TeamsNotificationException
+
+    Note over Retry: 1초 대기
+
+    Retry->>Http: post(message) [2차 시도]
+    Http->>Teams: HTTP POST
+    Teams-->>Http: 200 OK
+    Http-->>Retry: 성공
+    Retry-->>Client: 완료
+    Client-->>App: 완료
+```
+
+### 비동기 전송 흐름
+
+```mermaid
+sequenceDiagram
+    participant App as 메인 스레드 (main)
+    participant Pool as 별도 스레드 (ForkJoinPool)
+    participant Http as WebhookHttpClient
+    participant Teams as MS Teams Webhook
+
+    App->>Pool: sendAsync() → runAsync() 작업 등록
+    App-->>App: CompletableFuture<Void> 즉시 반환
+
+    par 메인 스레드
+        App->>App: 다음 코드 계속 실행
+        Note over App: 메인 스레드 종료
+    and 별도 스레드 (독립적으로 실행)
+        Pool->>Http: post(message)
+        Http->>Teams: HTTP POST (JSON)
+        Teams-->>Http: 200 OK
+        Http-->>Pool: 성공
+        Note over Pool: 메인 스레드 종료 후에도<br/>JVM이 살아있으면 계속 실행
+        Pool->>Pool: thenRun() 콜백 실행
+    end
+```
+
+---
+
 ## 요구사항
 
 - Java 17 이상
@@ -170,21 +244,17 @@ teamsClient.sendTo("monitoring", message);
 ```yaml
 teams:
   notification:
-    enabled: true                        # 활성화 여부 (기본값: true)
+    enabled: true                  # 활성화 여부 (기본값: true)
     channels:
       default:
-        webhook-url: https://...         # 필수
+        webhook-url: https://...   # 필수
       monitoring:
         webhook-url: https://...
     retry:
-      max-attempts: 3                    # 재시도 횟수 (기본값: 3)
-      wait-duration: 1000ms             # 재시도 간격 (기본값: 1초)
-      back-off: FIXED                    # FIXED 또는 EXPONENTIAL (기본값: FIXED)
-    timeout: 5s                          # HTTP 요청 타임아웃 (기본값: 5초)
-    circuit-breaker:
-      enabled: false                     # Circuit Breaker 활성화 (기본값: false)
-      failure-rate-threshold: 50         # 실패율 임계값 % (기본값: 50)
-      wait-duration-in-open-state: 30s  # OPEN 상태 유지 시간 (기본값: 30초)
+      max-attempts: 3              # 재시도 횟수 (기본값: 3)
+      wait-duration: 1000ms        # 재시도 간격 (기본값: 1초)
+      back-off: FIXED              # FIXED 또는 EXPONENTIAL (기본값: FIXED)
+    timeout: 5s                    # HTTP 요청 타임아웃 (기본값: 5초)
 ```
 
 ---
@@ -218,31 +288,6 @@ client.send(TeamsMessage.text()
     .type(MessageType.INFO)
     .build());
 ```
-
----
-
-## 로드맵
-
-- [x] 텍스트 메시지
-- [x] Adaptive Card
-- [x] 자동 재시도
-- [x] Spring Boot Auto-Configuration
-- [x] 멀티 채널 지원
-- [ ] Circuit Breaker
-- [ ] Kafka 비동기 모듈 (`teams-notification-kafka`)
-
----
-
-## 기여하기
-
-기여는 언제나 환영합니다! Pull Request를 자유롭게 보내주세요.
-
-1. 저장소를 Fork합니다
-2. 기능 브랜치를 생성합니다 (`git checkout -b feature/amazing-feature`)
-3. 변경사항을 커밋합니다 (`git commit -m 'Add amazing feature'`)
-4. 브랜치에 Push합니다 (`git push origin feature/amazing-feature`)
-5. Pull Request를 열어주세요
-
 ---
 
 ## 라이선스

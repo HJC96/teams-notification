@@ -10,6 +10,7 @@ dependencies {
     implementation project(':teams-notification-core')
 
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'io.github.resilience4j:resilience4j-retry:2.2.0'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
