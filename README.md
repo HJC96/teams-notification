@@ -212,6 +212,10 @@ teamsClient.sendAsync(message)
 
 ### 멀티 채널
 
+여러 Teams 채널로 알림을 나눠 보내고 싶다면 채널별 Webhook URL을 별칭과 함께 등록할 수 있습니다.
+
+여기서 `default`, `monitoring`은 Teams 채널명을 자동으로 찾는 값이 아니라, 애플리케이션에서 사용할 **채널 별칭**입니다. 실제 Teams 채널과 1:1로 맞춰도 되고, `deploy`, `error`, `urgent`처럼 목적에 맞는 이름으로 정해도 됩니다.
+
 ```yaml
 teams:
   notification:
@@ -222,10 +226,19 @@ teams:
         webhook-url: https://outlook.office.com/webhook/MONITORING_CHANNEL
 ```
 
+`send(message)`는 항상 `default`에 등록된 Webhook URL로 전송합니다.
+
 ```java
-// 특정 채널로 전송
+teamsClient.send(message);
+```
+
+특정 별칭으로 보내고 싶다면 `sendTo(channelName, message)`를 사용합니다.
+
+```java
 teamsClient.sendTo("monitoring", message);
 ```
+
+위 예시에서는 `monitoring` 별칭에 등록된 Webhook URL, 즉 `MONITORING_CHANNEL`로 알림이 전송됩니다. `monitoring`이라는 이름 자체가 특별한 것은 아니며, 설정에 등록한 별칭과 코드에서 호출하는 이름이 일치하면 됩니다.
 
 ---
 
@@ -248,9 +261,9 @@ teams:
     enabled: true                  # 활성화 여부 (기본값: true)
     channels:
       default:
-        webhook-url: https://...   # 필수
+        webhook-url: https://...   # 필수, send(message) 호출 시 사용
       monitoring:
-        webhook-url: https://...
+        webhook-url: https://...   # sendTo("monitoring", message) 호출 시 사용
     retry:
       max-attempts: 3              # 재시도 횟수 (기본값: 3)
       wait-duration: 1000ms        # 재시도 간격 (기본값: 1초)
@@ -289,6 +302,7 @@ client.send(TeamsMessage.text()
     .type(MessageType.INFO)
     .build());
 ```
+
 ---
 
 ## 라이선스
