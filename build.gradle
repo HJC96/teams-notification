@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group = 'io.github.hjc96'
-    version = '0.1.1'
+    version = '0.1.2'
 }
 
 subprojects {
@@ -15,8 +15,6 @@ subprojects {
     java {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        // withJavadocJar() 제거
-        // withSourcesJar() 제거
     }
 
     repositories {

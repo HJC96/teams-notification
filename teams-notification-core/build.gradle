@@ -1,4 +1,4 @@
-import com.vanniktech.maven.publish.SonatypeHost  // 추가
+import com.vanniktech.maven.publish.SonatypeHost
 
 apply plugin: 'com.vanniktech.maven.publish'
 
@@ -6,7 +6,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    coordinates('io.github.hjc96', 'teams-notification-core', '0.1.1')
+    coordinates(project.group.toString(), 'teams-notification-core', project.version.toString())
 
     pom {
         name = 'Teams Notification Core'
@@ -23,8 +23,8 @@ mavenPublishing {
         developers {
             developer {
                 id = 'hjc96'
-                name = 'Han Jichan'
-                email = 'your-email@example.com'
+                name = 'Han Ji Chan'
+                email = '87226129+HJC96@users.noreply.github.com'
             }
         }
 

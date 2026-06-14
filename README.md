@@ -107,10 +107,10 @@ sequenceDiagram
 ```groovy
 // Spring Boot Auto-Configuration (권장)
 // core API(TeamsNotificationClient, TeamsMessage, MessageType)를 함께 사용할 수 있습니다.
-implementation 'io.github.hjc96:teams-notification-spring-boot:0.1.1'
+implementation 'io.github.hjc96:teams-notification-spring-boot:0.1.2'
 
 // Spring 없이 core만 사용
-implementation 'io.github.hjc96:teams-notification-core:0.1.1'
+implementation 'io.github.hjc96:teams-notification-core:0.1.2'
 ```
 
 ### Maven
@@ -120,14 +120,14 @@ implementation 'io.github.hjc96:teams-notification-core:0.1.1'
 <dependency>
     <groupId>io.github.hjc96</groupId>
     <artifactId>teams-notification-spring-boot</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 </dependency>
 
 <!-- Spring 없이 core만 사용 -->
 <dependency>
     <groupId>io.github.hjc96</groupId>
     <artifactId>teams-notification-core</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 
