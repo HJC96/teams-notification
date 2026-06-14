@@ -6,7 +6,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    coordinates('io.github.hjc96', 'teams-notification-core', '0.1.0')
+    coordinates('io.github.hjc96', 'teams-notification-core', '0.1.1')
 
     pom {
         name = 'Teams Notification Core'

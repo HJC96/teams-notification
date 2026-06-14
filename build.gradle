@@ -6,11 +6,11 @@ plugins {
 
 allprojects {
     group = 'io.github.hjc96'
-    version = '0.1.0'
+    version = '0.1.1'
 }
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     java {
         sourceCompatibility = JavaVersion.VERSION_17

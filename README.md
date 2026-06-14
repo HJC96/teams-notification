@@ -15,7 +15,7 @@ MS Teams 채널로 알림을 전송하는 경량 Java 라이브러리입니다.
 - 🎨 **Adaptive Card** — 색상, Facts, 버튼이 포함된 리치 메시지
 - 🔄 **자동 재시도** — 고정/지수 백오프 방식 선택 가능
 - ⚡ **Spring Boot Auto-Configuration** — `application.yml` 설정만으로 바로 사용
-- 🪶 **가벼운 의존성** — core 모듈은 OkHttp와 Jackson만 사용
+- 🪶 **Spring 비의존 core** — core 모듈은 Spring 없이 동작하며 OkHttp, Jackson, Resilience4j만 사용
 
 ---
 
@@ -96,7 +96,7 @@ sequenceDiagram
 ## 요구사항
 
 - Java 17 이상
-- Spring Boot 3.0 이상
+- Spring Boot 모듈 사용 시 Spring Boot 3.0 이상
 
 ---
 
@@ -106,10 +106,11 @@ sequenceDiagram
 
 ```groovy
 // Spring Boot Auto-Configuration (권장)
-implementation 'io.github.hjc96:teams-notification-spring-boot:0.1.0'
+// core API(TeamsNotificationClient, TeamsMessage, MessageType)를 함께 사용할 수 있습니다.
+implementation 'io.github.hjc96:teams-notification-spring-boot:0.1.1'
 
 // Spring 없이 core만 사용
-implementation 'io.github.hjc96:teams-notification-core:0.1.0'
+implementation 'io.github.hjc96:teams-notification-core:0.1.1'
 ```
 
 ### Maven
@@ -119,14 +120,14 @@ implementation 'io.github.hjc96:teams-notification-core:0.1.0'
 <dependency>
     <groupId>io.github.hjc96</groupId>
     <artifactId>teams-notification-spring-boot</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 </dependency>
 
 <!-- Spring 없이 core만 사용 -->
 <dependency>
     <groupId>io.github.hjc96</groupId>
     <artifactId>teams-notification-core</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 </dependency>
 ```
 
