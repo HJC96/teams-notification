@@ -7,7 +7,6 @@ import io.github.hjc96.teams.message.TeamsMessage;
 import okhttp3.*;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -35,19 +34,21 @@ public class WebhookHttpClient {
     private final String webhookUrl;
 
     /**
-     * @param webhookUrl Teams Incoming Webhook URL
-     * @param timeout    HTTP 요청 타임아웃 (connect / read / write 동일하게 적용)
+     * 공유 {@link OkHttpClient} / {@link ObjectMapper}를 주입받는 생성자.
+     *
+     * <p>OkHttp는 단일 인스턴스를 공유해 커넥션 풀과 스레드 풀을 재사용하도록 설계되어 있으므로,
+     * 채널마다 클라이언트를 새로 만들지 않고 하나를 공유해야 합니다.
+     * 보통 직접 호출하기보다 {@link WebhookHttpClientFactory}를 통해 생성합니다.
+     *
+     * @param webhookUrl   Teams Incoming Webhook URL
+     * @param httpClient   공유 OkHttpClient 인스턴스
+     * @param objectMapper 공유 ObjectMapper 인스턴스
      */
-    public WebhookHttpClient(String webhookUrl, Duration timeout) {
+    public WebhookHttpClient(String webhookUrl, OkHttpClient httpClient, ObjectMapper objectMapper) {
         this.webhookUrl = Objects.requireNonNull(webhookUrl, "webhookUrl must not be null");
-        Objects.requireNonNull(timeout, "timeout must not be null");
-        this.objectMapper = new ObjectMapper();
+        this.httpClient = Objects.requireNonNull(httpClient, "httpClient must not be null");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper must not be null");
         this.adaptiveCardBuilder = new AdaptiveCardBuilder(objectMapper);
-        this.httpClient = new OkHttpClient.Builder()
-                .connectTimeout(timeout)
-                .readTimeout(timeout)
-                .writeTimeout(timeout)
-                .build();
     }
 
     /**
@@ -72,8 +73,11 @@ public class WebhookHttpClient {
 
             try (Response response = httpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
+                    ResponseBody responseBody = response.body();
+                    String errorBody = responseBody != null ? responseBody.string() : "";
                     throw new TeamsNotificationException(
                             "Webhook 전송 실패. HTTP 상태코드: " + response.code()
+                                    + (errorBody.isBlank() ? "" : ", 응답: " + errorBody)
                     );
                 }
             }

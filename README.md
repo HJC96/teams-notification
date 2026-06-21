@@ -107,10 +107,10 @@ sequenceDiagram
 ```groovy
 // Spring Boot Auto-Configuration (권장)
 // core API(TeamsNotificationClient, TeamsMessage, MessageType)를 함께 사용할 수 있습니다.
-implementation 'io.github.hjc96:teams-notification-spring-boot:0.1.2'
+implementation 'io.github.hjc96:teams-notification-spring-boot:0.2.0'
 
 // Spring 없이 core만 사용
-implementation 'io.github.hjc96:teams-notification-core:0.1.2'
+implementation 'io.github.hjc96:teams-notification-core:0.2.0'
 ```
 
 ### Maven
@@ -120,14 +120,14 @@ implementation 'io.github.hjc96:teams-notification-core:0.1.2'
 <dependency>
     <groupId>io.github.hjc96</groupId>
     <artifactId>teams-notification-spring-boot</artifactId>
-    <version>0.1.2</version>
+    <version>0.2.0</version>
 </dependency>
 
 <!-- Spring 없이 core만 사용 -->
 <dependency>
     <groupId>io.github.hjc96</groupId>
     <artifactId>teams-notification-core</artifactId>
-    <version>0.1.2</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -295,6 +295,7 @@ TeamsNotificationClient client = TeamsNotificationClient.builder()
     .webhookUrl("https://outlook.office.com/webhook/YOUR_WEBHOOK_URL")
     .timeout(Duration.ofSeconds(5))
     .retryMaxAttempts(3)
+    .channel("monitoring", "https://outlook.office.com/webhook/MONITORING_CHANNEL")  // 선택: 추가 채널
     .build();
 
 client.send(TeamsMessage.text()
@@ -303,6 +304,37 @@ client.send(TeamsMessage.text()
     .type(MessageType.INFO)
     .build());
 ```
+
+> 여러 채널을 등록해도 하나의 `OkHttpClient`를 공유하므로 커넥션 풀이 채널마다 중복 생성되지 않습니다.
+
+> ⚠️ **`TeamsNotificationClient`는 한 번 생성해 재사용하세요.** 내부에 커넥션 풀과 스레드 풀을 가지므로,
+> 메시지를 보낼 때마다 `builder()...build()`로 새로 만들면 풀이 반복 생성되어 비효율적입니다.
+> 애플리케이션에서 싱글톤(또는 필드)으로 한 번만 만들어 공유하는 것을 권장합니다.
+> (Spring Boot 모듈을 사용하면 빈이 싱글톤으로 등록되어 자동으로 한 번만 생성됩니다.)
+
+---
+
+## 변경 이력
+
+### 0.2.0
+
+- **`OkHttpClient` 공유** — 채널마다 `OkHttpClient`를 새로 만들던 동작을 고쳐, 모든 채널이 하나의 인스턴스를 공유하도록 변경했습니다. 커넥션 풀과 스레드가 채널 수만큼 중복 생성되지 않습니다. 공유 클라이언트는 [`WebhookHttpClientFactory`](teams-notification-core/src/main/java/io/github/hjc96/teams/http/WebhookHttpClientFactory.java)가 생성합니다.
+- **전송 실패 시 응답 본문 포함** — 비성공 응답일 때 HTTP 상태코드뿐 아니라 Teams가 반환한 응답 본문을 예외 메시지에 포함해, 실패 원인을 파악하기 쉽게 했습니다.
+
+#### ⚠️ 호환성 변경 (Breaking)
+
+- **`WebhookHttpClient(String webhookUrl, Duration timeout)` 생성자 제거.** 이 생성자는 호출할 때마다 `OkHttpClient`를 새로 만들어 커넥션 풀이 중복 생성되는 문제가 있었습니다. 대신 공유 인스턴스를 사용하는 `WebhookHttpClient(String, OkHttpClient, ObjectMapper)` 또는 `WebhookHttpClientFactory`를 사용하세요.
+
+  ```java
+  // 변경 전 (0.1.x)
+  WebhookHttpClient client = new WebhookHttpClient(webhookUrl, Duration.ofSeconds(5));
+
+  // 변경 후 (0.2.0+)
+  WebhookHttpClient client = new WebhookHttpClientFactory(Duration.ofSeconds(5))
+          .create(webhookUrl);
+  ```
+
+  > `TeamsNotificationClient.builder()` / Spring Boot Auto-Configuration만 사용했다면 영향이 없습니다. 이 생성자를 직접 호출한 경우에만 수정이 필요합니다.
 
 ---
 

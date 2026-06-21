@@ -3,6 +3,7 @@ package io.github.hjc96.teams.autoconfigure;
 import io.github.hjc96.teams.client.TeamsNotificationClient;
 import io.github.hjc96.teams.client.TeamsNotificationClientImpl;
 import io.github.hjc96.teams.http.WebhookHttpClient;
+import io.github.hjc96.teams.http.WebhookHttpClientFactory;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -37,7 +38,9 @@ public class TeamsNotificationAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public TeamsNotificationClient teamsNotificationClient(TeamsNotificationProperties properties) {
-        // 채널별 WebhookHttpClient 생성
+        // 모든 채널이 하나의 OkHttpClient / ObjectMapper를 공유하도록 팩토리로 생성한다.
+        WebhookHttpClientFactory clientFactory = new WebhookHttpClientFactory(properties.getTimeout());
+
         Map<String, WebhookHttpClient> channelClients = new HashMap<>();
         WebhookHttpClient defaultClient = null;
 
@@ -45,9 +48,7 @@ public class TeamsNotificationAutoConfiguration {
                 : properties.getChannels().entrySet()) {
 
             String channelName = entry.getKey();
-            String webhookUrl = entry.getValue().getWebhookUrl();
-
-            WebhookHttpClient client = new WebhookHttpClient(webhookUrl, properties.getTimeout());
+            WebhookHttpClient client = clientFactory.create(entry.getValue().getWebhookUrl());
 
             if ("default".equals(channelName)) {
                 defaultClient = client;

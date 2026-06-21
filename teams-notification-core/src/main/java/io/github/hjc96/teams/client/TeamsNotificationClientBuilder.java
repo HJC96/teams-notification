@@ -1,6 +1,7 @@
 package io.github.hjc96.teams.client;
 
 import io.github.hjc96.teams.http.WebhookHttpClient;
+import io.github.hjc96.teams.http.WebhookHttpClientFactory;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 
@@ -65,10 +66,13 @@ public class TeamsNotificationClientBuilder {
             throw new IllegalStateException("retryWaitDuration must be positive");
         }
 
-        WebhookHttpClient defaultClient = new WebhookHttpClient(webhookUrl, timeout);
+        // 모든 채널이 하나의 OkHttpClient / ObjectMapper를 공유하도록 팩토리로 생성한다.
+        WebhookHttpClientFactory clientFactory = new WebhookHttpClientFactory(timeout);
+
+        WebhookHttpClient defaultClient = clientFactory.create(webhookUrl);
         Map<String, WebhookHttpClient> channelClients = new LinkedHashMap<>();
         channelWebhookUrls.forEach((name, url) ->
-                channelClients.put(name, new WebhookHttpClient(url, timeout)));
+                channelClients.put(name, clientFactory.create(url)));
 
         return new TeamsNotificationClientImpl(defaultClient, channelClients, buildRetry());
     }
